@@ -1,2 +1,2 @@
-# CS499CyberRat
+# CS499 CyberRat
 Application for grouped Cybersecurity tools
