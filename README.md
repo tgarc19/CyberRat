@@ -1,2 +1,2 @@
 # CS499 CyberRat
-Application for grouped Cybersecurity tools
+Application for grouping Cybersecurity tools
