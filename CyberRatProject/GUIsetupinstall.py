@@ -13,6 +13,6 @@ direction_label = ctk.CTkLabel(root, text="Choose File Location", font=ctk.CTkFo
 browse_button = ctk.CTkButton(root, text="Browse", width=113, command=browse_event)
 
 def browse_event():
-    print("Pull Up File Exployer to put install location")
+    print("Pull Up File Explorer to put install location")
 
 root.mainloop() 
