@@ -398,7 +398,7 @@ class PasswordScene(ctk.CTkFrame):
             else:
                 messagebox.showwarning("Missing Info", "Please fill all fields.")
 
-        ctk.CTkButton(frame, text="SAVE", command=save_changes).pack(pady=15)
+        ctk.CTkButton(frame, text="SAVE", command=save_changes).grid(row=6, column=0, columnspan=2, pady=15)
         popup.wait_window()
 
 class HoverFrame(ctk.CTkFrame):
