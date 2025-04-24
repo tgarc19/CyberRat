@@ -9,12 +9,23 @@ Help (?):
 provides link to manual
     
 config:
+
 nmap scene:
+
 configs auto arp
-Password Manager: 
+
+Password Manager:
+
 configs password generation
+
 File Encryption:
+
 configs keys
-managing keys, custom key, multiple keys
+
+managing keys
+
+custom key
+
+multiple keys
       
 batch file encryption
