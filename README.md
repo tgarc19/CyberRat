@@ -6,26 +6,27 @@ Suggested Features:
 WIS packaging and single file packaging for easy install
 
 Help (?):
-provides link to manual
+
+    provides link to manual
     
 config:
 
-nmap scene:
+    nmap scene:
 
-configs auto arp
+        configs auto arp
 
-Password Manager:
+    Password Manager:
 
-configs password generation
+        configs password generation
 
-File Encryption:
+    File Encryption:
 
-configs keys
+        configs keys
 
-managing keys
+        managing keys
 
-custom key
+        custom key
 
-multiple keys
+        multiple keys
       
 batch file encryption
