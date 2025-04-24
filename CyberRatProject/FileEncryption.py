@@ -2,52 +2,61 @@ from cryptography.fernet import Fernet
 import os
 
 class FileEncryptor:
-
     def __init__(self, key_file="key.key"):
         self.key_file = key_file
-        self.key = self.get_key()
-        self.state = False
+        self.key = self.load_or_generate_key()
 
-    def generate_key(self):
-        self.key = Fernet.generate_key()
-        with open(self.key_file, "wb") as file:
-            file.write(self.key)
-
-    def get_key(self):
+    def load_or_generate_key(self):
         if os.path.exists(self.key_file):
-            with open(self.key_file, "rb") as file:
-                return file.read()
+            with open(self.key_file, "rb") as f:
+                return f.read()
         else:
-            return "No key found."
-        
-    def update_key(self, file):
-        if self.state:
-            self.decrypt(file)
-            self.generate_key()
-            self.encrypt(file)
-        else:
-            self.generate_key()
+            key = Fernet.generate_key()
+            with open(self.key_file, "wb") as f:
+                f.write(key)
+            return key
 
-    def encrypt(self, file):
-        if self.state == False:
-            encryptor = Fernet(self.key)
-            with open(file, "rb") as file_open:
-                clear_text = file_open.read()
-            cipher_text = encryptor.encrypt(clear_text)
-            with open(file, "wb") as file_open_write:
-                file_open_write.write(cipher_text)
-            self.state = True
-        else:
-            return "File already encrypted."
+    def regenerate_key(self):
+        key = Fernet.generate_key()
+        with open(self.key_file, "wb") as f:
+            f.write(key)
+        self.key = key
 
-    def decrypt(self, file):
-        if self.state:
-            decryptor = Fernet(self.key)
-            with open(file, "rb") as file_open:
-                cipher_text = file_open.read()
-            clear_text = decryptor.decrypt(cipher_text)
-            with open(file, "wb") as file_open_write:
-                file_open_write.write(clear_text)
-            self.state = False
+    def encrypt_file(self, file_path):
+        try:
+            with open(file_path, "rb") as f:
+                data = f.read()
+
+            fernet = Fernet(self.key)
+            encrypted = fernet.encrypt(data)
+
+            with open(file_path, "wb") as f:
+                f.write(encrypted)
+
+            return True, "File encrypted successfully."
+        except Exception as e:
+            return False, f"Encryption failed: {e}"
+
+    def decrypt_file(self, file_path):
+        try:
+            with open(file_path, "rb") as f:
+                data = f.read()
+
+            fernet = Fernet(self.key)
+            decrypted = fernet.decrypt(data)
+
+            with open(file_path, "wb") as f:
+                f.write(decrypted)
+
+            return True, "File decrypted successfully."
+        except Exception as e:
+            return False, f"Decryption failed: {e}"
+
+    def update_key_and_reencrypt(self, file_path):
+        # Attempts to decrypt first to allow re-keying
+        success, _ = self.decrypt_file(file_path)
+        if success:
+            self.regenerate_key()
+            return self.encrypt_file(file_path)
         else:
-            return "File not encrypted."
+            return False, "Re-key failed: Unable to decrypt file."

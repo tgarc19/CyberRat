@@ -9,6 +9,7 @@
 from scapy.all import ARP, Ether, srp
 from FileEncryption import FileEncryptor as fe
 from tkinter import filedialog, messagebox
+from cryptography.fernet import Fernet
 import customtkinter as ctk
 import PasswordManager as pm
 import os
@@ -460,6 +461,7 @@ class FileEncryptScene(ctk.CTkFrame):
     def __init__(self, parent, controller):
         super().__init__(parent)
         self.controller = controller
+        self.encryptor = fe()
 
         # === Top Navigation Bar ===
         nav_bar = ctk.CTkFrame(self, fg_color="transparent")
@@ -488,61 +490,72 @@ class FileEncryptScene(ctk.CTkFrame):
         help_button.pack(side="left")
 
         # === Main Content Form ===
-        title = ctk.CTkLabel(self, text="File Encryptor", font=ctk.CTkFont(size=24, weight="bold"))
+        title = ctk.CTkLabel(self, text="File Encryption", font=ctk.CTkFont(size=24, weight="bold"))
         title.pack(pady=10)
-        
+
         form_frame = ctk.CTkFrame(self, fg_color="transparent")
-        form_frame.pack(pady=60)
+        form_frame.pack(pady=100)
 
-        def encrypt_file():
-            file_path = file_entry.get()
-            if not file_path:
-                messagebox.showwarning("No File", "Please select a file first.")
-                return
-            else:
-                try:
-                    result = fe.encrypt(file_path)
-                    messagebox.showinfo("Success", "File encrypted successfully." if result is None else result)
-                except Exception as e:
-                    messagebox.showerror("Error", f"Encryption Failed: {e}")
+        ctk.CTkLabel(form_frame, text="Select File", font=ctk.CTkFont(size=14)).pack(anchor="w")
 
-        def decrypt_file():
-            file_path = file_entry.get()
-            if not os.path.exists(file_path):
-                messagebox.showerror("Error", "File does not exist.")
-                return
+        file_row = ctk.CTkFrame(form_frame, fg_color="transparent")
+        file_row.pack(pady=5, fill="x")
+
+        self.file_entry = ctk.CTkEntry(file_row, width=350)
+        self.file_entry.pack(side="left")
+
+        ctk.CTkButton(file_row, text="Browse", width=80, command=self.browse_file).pack(side="left", padx=5)
+
+        # === Feedback + Action Buttons Row ===
+        button_row = ctk.CTkFrame(form_frame, fg_color="transparent")
+        button_row.pack(fill="x", pady=30, padx=5)
+
+        self.encrypt_btn = ctk.CTkButton(button_row, text="Encrypt", width=100, command=self.encrypt_or_rekey)
+        self.encrypt_btn.pack(side="left", padx=5)
+
+        self.decrypt_btn = ctk.CTkButton(button_row, text="Decrypt", width=100, command=self.decrypt_file)
+        self.decrypt_btn.pack(side="right", padx=5)
+
+        self.status_label = ctk.CTkLabel(form_frame, text="", text_color="gray", anchor="w")
+        self.status_label.pack(fill="x", padx=5, pady=5)
+
+    def browse_file(self):
+        path = filedialog.askopenfilename()
+        if path:
+            self.file_entry.delete(0, "end")
+            self.file_entry.insert(0, path)
+
+    def encrypt_or_rekey(self):
+        file_path = self.file_entry.get()
+        if not file_path:
+            messagebox.showwarning("No File", "Please select a file.")
+            return
+
+        try:
+            with open(file_path, "rb") as f:
+                data = f.read()
+
             try:
-                result = fe.decrypt(file_path)
-                messagebox.showinfo("Success", "File decrypted." if result is None else result)
-            except Exception as e:
-                messagebox.showerror("Error", f"Decryption Failed: {e}")
+                Fernet(self.encryptor.key).decrypt(data)
+                success, message = self.encryptor.update_key_and_reencrypt(file_path)
+            except:
+                success, message = self.encryptor.encrypt_file(file_path)
 
-        def browse_file():
-            file_path = filedialog.askopenfilename(
-                title="Select a file",
-                filetypes=[("All files", "*.*"), ("Text files", "*.txt")]
-            )
-            if file_path:
-                file_entry.delete(0, "end")
-                file_entry.insert(0, file_path)
+            self.status_label.configure(text=message)
 
-        # Select File Row
-        file_label = ctk.CTkLabel(form_frame, text="Select File", anchor="w")
-        file_label.grid(row=0, column=0, sticky="w", pady=5)
-        file_entry = ctk.CTkEntry(form_frame, width=300)
-        file_entry.grid(row=1, column=0, sticky="w", pady=5)
-        file_browse = ctk.CTkButton(form_frame, text="Browse", width=80, command=browse_file)
-        file_browse.grid(row=1, column=1, padx=10)
+        except Exception as e:
+            self.status_label.configure(text=f"Error: {e}")
 
-        # Encrypt / Decrypt Buttons
-        action_frame = ctk.CTkFrame(self, fg_color="transparent")
-        action_frame.pack(pady=30)
+    def decrypt_file(self):
+        file_path = self.file_entry.get()
+        if not file_path:
+            messagebox.showwarning("No File", "Please select a file.")
+            return
 
-        encrypt_btn = ctk.CTkButton(action_frame, text="Encrypt", width=100, command=encrypt_file)
-        encrypt_btn.pack(side="left", padx=10)
+        success, message = self.encryptor.decrypt_file(file_path)
+        self.status_label.configure(text=message)
 
-        decrypt_btn = ctk.CTkButton(action_frame, text="Decrypt", width=100, command=decrypt_file)
-        decrypt_btn.pack(side="left", padx=10)
+
 
 if __name__ == "__main__":
     app = App()
