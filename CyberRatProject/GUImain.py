@@ -19,25 +19,6 @@ import threading
 import ctypes
 import sys
 import pyperclip
-
-def elevate_as_admin():
-    if not ctypes.windll.shell32.IsUserAnAdmin():
-        # Relaunch with admin privileges
-        ctypes.windll.shell32.ShellExecuteW(
-            None,
-            "runas",
-            sys.executable,
-            " ".join([f'"{arg}"' for arg in sys.argv]),
-            None,
-            1
-        )
-        sys.exit()
-
-def is_admin():
-    try:
-        return ctypes.windll.shell32.IsUserAnAdmin()
-    except:
-        return False
     
 class App(ctk.CTk):
     def __init__(self):
@@ -494,30 +475,26 @@ class FileEncryptScene(ctk.CTkFrame):
         title.pack(pady=10)
 
         form_frame = ctk.CTkFrame(self, fg_color="transparent")
-        form_frame.pack(pady=100)
+        form_frame.pack(pady=80)
 
-        ctk.CTkLabel(form_frame, text="Select File", font=ctk.CTkFont(size=14)).pack(anchor="w")
+        ctk.CTkLabel(form_frame, text="Select File", font=ctk.CTkFont(size=14)).grid(row=0, column=0, sticky="w", padx=5, pady=(0, 5))
 
         file_row = ctk.CTkFrame(form_frame, fg_color="transparent")
-        file_row.pack(pady=5, fill="x")
+        file_row.grid(row=1, column=0, columnspan=2, pady=5)
 
-        self.file_entry = ctk.CTkEntry(file_row, width=350)
+        self.file_entry = ctk.CTkEntry(file_row, width=250)
         self.file_entry.pack(side="left")
 
         ctk.CTkButton(file_row, text="Browse", width=80, command=self.browse_file).pack(side="left", padx=5)
 
-        # === Feedback + Action Buttons Row ===
-        button_row = ctk.CTkFrame(form_frame, fg_color="transparent")
-        button_row.pack(fill="x", pady=30, padx=5)
+        self.status_label = ctk.CTkLabel(form_frame, text="", text_color="gray")
+        self.status_label.grid(row=2, column=0, columnspan=2, pady=15)
 
-        self.encrypt_btn = ctk.CTkButton(button_row, text="Encrypt", width=100, command=self.encrypt_or_rekey)
-        self.encrypt_btn.pack(side="left", padx=5)
+        action_row = ctk.CTkFrame(form_frame, fg_color="transparent")
+        action_row.grid(row=3, column=0, columnspan=2, pady=5)
 
-        self.decrypt_btn = ctk.CTkButton(button_row, text="Decrypt", width=100, command=self.decrypt_file)
-        self.decrypt_btn.pack(side="right", padx=5)
-
-        self.status_label = ctk.CTkLabel(form_frame, text="", text_color="gray", anchor="w")
-        self.status_label.pack(fill="x", padx=5, pady=5)
+        ctk.CTkButton(action_row, text="Encrypt", width=120, command=self.encrypt_or_rekey).pack(side="left", padx=10)
+        ctk.CTkButton(action_row, text="Decrypt", width=120, command=self.decrypt_file).pack(side="left", padx=10)
 
     def browse_file(self):
         path = filedialog.askopenfilename()
