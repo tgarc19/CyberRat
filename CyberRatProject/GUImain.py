@@ -192,14 +192,12 @@ class NmapScene(ctk.CTkFrame):
             self.output_box.insert("end", f"Error: {e}\n")
 
 class PasswordScene(ctk.CTkFrame):
-
-
     def __init__(self, parent, controller):
         super().__init__(parent)
         self.controller = controller
-    
+
         self.show_master_password_popup()
-        
+
         # === Top Navigation Bar ===
         nav_bar = ctk.CTkFrame(self, fg_color="transparent")
         nav_bar.pack(fill="x", padx=20, pady=10)
@@ -225,72 +223,27 @@ class PasswordScene(ctk.CTkFrame):
 
         help_button = ctk.CTkButton(right_side, text="?", width=30)
         help_button.pack(side="left")
+        #--------------------------------
 
-        # === Search Bar ===
+        title = ctk.CTkLabel(self, text="Password Manager", font=ctk.CTkFont(size=24, weight="bold"))
+        title.pack(pady=10)
+
         search_frame = ctk.CTkFrame(self, fg_color="transparent")
         search_frame.pack(pady=10)
 
         self.search_entry = ctk.CTkEntry(search_frame, placeholder_text="Search...", width=300)
         self.search_entry.pack(side="left", padx=5)
 
-        search_icon = ctk.CTkButton(search_frame, text="🔍", width=40)
+        search_icon = ctk.CTkButton(search_frame, text="🔍", width=40, command=self.display_credentials)
         search_icon.pack(side="left")
 
-        # === Scrollable Area ===
         self.entries_frame = ctk.CTkScrollableFrame(self, width=880, height=350)
         self.entries_frame.pack(pady=10)
 
-        self.display_credentials()
-
-        # === ADD Button ===
         add_button = ctk.CTkButton(self, text="ADD", width=200, command=self.open_add_popup)
         add_button.pack(pady=20)
 
-    def open_add_popup(self):
-        popup = ctk.CTkToplevel(self)
-        popup.title("Add Password")
-        popup.geometry("400x300")
-        popup.grab_set()
-
-        input_frame = ctk.CTkFrame(popup)
-        input_frame.pack(padx=20, pady=20)
-
-        # === Service Entry ===
-        ctk.CTkLabel(input_frame, text="Service").pack(anchor="w")
-        service_entry = ctk.CTkEntry(input_frame, width=300)
-        service_entry.pack(pady=5)
-
-        # === Username Entry ===
-        ctk.CTkLabel(input_frame, text="Username").pack(anchor="w")
-        username_entry = ctk.CTkEntry(input_frame, width=300)
-        username_entry.pack(pady=5)
-
-        # === Password Entry + Auto Generate ===
-        password_label = ctk.CTkLabel(input_frame, text="Enter Password")
-        password_label.pack(anchor="w", pady=(10, 5))
-        pw_frame = ctk.CTkFrame(input_frame, fg_color="transparent")
-        pw_frame.pack(pady=5)
-
-        password_entry = ctk.CTkEntry(pw_frame, width=200)
-        password_entry.insert(0, self.generate_password())
-        password_entry.pack(side="left")
-
-        generate_btn = ctk.CTkButton(pw_frame, text="Auto Generate", width=120,
-                                 command=lambda: password_entry.delete(0, "end") or password_entry.insert(0, self.generate_password()))
-        generate_btn.pack(side="left", padx=5)
-
-        def save():
-            service = service_entry.get()
-            username = username_entry.get()
-            password = password_entry.get()
-            if service and username and password:
-                pm.save_credentials(service, username, password)
-                self.display_credentials()
-                popup.destroy()
-            else:
-                messagebox.showwarning("Missing Info", "Please fill all fields.")
-
-        ctk.CTkButton(input_frame, text="ADD", width=200, command=save).pack(pady=15)
+        self.display_credentials()
 
     def show_master_password_popup(self):
         popup = ctk.CTkToplevel(self)
@@ -300,16 +253,15 @@ class PasswordScene(ctk.CTkFrame):
         popup.resizable(False, False)
 
         ctk.CTkLabel(popup, text="Enter Master Password", font=ctk.CTkFont(size=16)).pack(pady=20)
-
         password_entry = ctk.CTkEntry(popup, show="*", width=250)
         password_entry.pack(pady=10)
 
         def submit_password():
             password = password_entry.get()
 
-            if not os.path.exists(pm.MASTER_PASSWORD_FILE):
-                # First-time setup: Save hashed password
+            if not pm.master_password_exists():
                 pm.set_global_master(password)
+                pm.save_master_password(password)
                 messagebox.showinfo("Success", "Master password created!")
                 popup.destroy()
             elif pm.verify_master_password(password):
@@ -319,15 +271,8 @@ class PasswordScene(ctk.CTkFrame):
                 messagebox.showerror("Access Denied", "Incorrect master password")
 
         ctk.CTkButton(popup, text="Submit", command=submit_password).pack(pady=10)
+        popup.wait_window()
 
-    def generate_password(self, length=12):
-        characters = string.ascii_letters + string.digits + "!@#$%^&*()"
-        return ''.join(random.choices(characters, k=length))
-
-    def save_password(self, service, username, password, popup_window):
-        print(f"Saved: {service} | {username} | {password}")
-        popup_window.destroy()
-        
     def display_credentials(self):
         for widget in self.entries_frame.winfo_children():
             widget.destroy()
@@ -338,17 +283,17 @@ class PasswordScene(ctk.CTkFrame):
             empty_label.pack()
             return
 
-        for service, data in credentials.items():
+        for index, entry in enumerate(credentials):
             frame = HoverFrame(self.entries_frame)
             frame.pack(fill="x", pady=2, padx=5)
 
-            site_label = ctk.CTkLabel(frame, text=service, width=200, anchor="w")
+            site_label = ctk.CTkLabel(frame, text=entry['service'], width=200, anchor="w")
             site_label.grid(row=0, column=0, padx=5)
 
-            user_label = ctk.CTkLabel(frame, text=data['username'], width=150, anchor="w")
+            user_label = ctk.CTkLabel(frame, text=entry['username'], width=150, anchor="w")
             user_label.grid(row=0, column=1, padx=5)
 
-            decrypted = pm.decrypt_password(data['password'], pm.get_global_master())
+            decrypted = pm.decrypt_password(entry['password'], pm.get_global_master())
             password_label = ctk.CTkLabel(frame, text=decrypted, width=200, anchor="w")
             password_label.grid(row=0, column=2, padx=5)
 
@@ -356,17 +301,16 @@ class PasswordScene(ctk.CTkFrame):
                 pyperclip.copy(pwd)
                 messagebox.showinfo("Copied", "Password copied to clipboard")
 
-            def edit_entry(s=service):
-                self.open_edit_popup(s, data['username'], decrypted)
+            def edit_entry(i=index, svc=entry['service'], usr=entry['username'], pwd=decrypted):
+                self.open_edit_popup(i, svc, usr, pwd)
 
-            def delete_entry(s=service):
-                confirm = messagebox.askyesno("Confirm Delete", f"Delete credentials for {s}?")
+            def delete_entry(i=index):
+                confirm = messagebox.askyesno("Confirm Delete", f"Delete credentials for {entry['service']}?")
                 if confirm:
                     creds = pm.load_credentials()
-                    if s in creds:
-                        del creds[s]
-                        pm.save_all_credentials(creds)
-                        self.display_credentials()
+                    del creds[i]
+                    pm.save_all_credentials(creds)
+                    self.display_credentials()
 
             copy_button = ctk.CTkButton(frame, text="Copy", width=70, command=copy_to_clipboard)
             edit_button = ctk.CTkButton(frame, text="Edit", width=70, command=edit_entry)
@@ -378,7 +322,50 @@ class PasswordScene(ctk.CTkFrame):
 
             frame.set_hover_widgets([copy_button, edit_button, delete_button])
 
-    def open_edit_popup(self, service, username, password):
+    def open_add_popup(self):
+        popup = ctk.CTkToplevel(self)
+        popup.title("Add Credential")
+        popup.geometry("400x300")
+        popup.grab_set()
+
+        frame = ctk.CTkFrame(popup)
+        frame.pack(padx=20, pady=20)
+
+        ctk.CTkLabel(frame, text="Service").grid(row=0, column=0, sticky="w")
+        service_entry = ctk.CTkEntry(frame, width=300)
+        service_entry.grid(row=1, column=0, columnspan=2, pady=5)
+
+        ctk.CTkLabel(frame, text="Username").grid(row=2, column=0, sticky="w")
+        username_entry = ctk.CTkEntry(frame, width=300)
+        username_entry.grid(row=3, column=0, columnspan=2, pady=5)
+
+        ctk.CTkLabel(frame, text="Password").grid(row=4, column=0, sticky="w")
+        password_entry = ctk.CTkEntry(frame, width=200)
+        password_entry.grid(row=5, column=0, sticky="w")
+
+        def generate_password():
+            characters = string.ascii_letters + string.digits + string.punctuation
+            generated = ''.join(random.choices(characters, k=16))
+            password_entry.delete(0, "end")
+            password_entry.insert(0, generated)
+
+        gen_btn = ctk.CTkButton(frame, text="↻", width=30, height=28, command=generate_password)
+        gen_btn.grid(row=5, column=1, padx=5)
+
+        def save():
+            service = service_entry.get()
+            username = username_entry.get()
+            password = password_entry.get()
+            if service and username and password:
+                pm.append_credential(service, username, password)
+                self.display_credentials()
+                popup.destroy()
+            else:
+                messagebox.showwarning("Missing Info", "Please fill all fields.")
+
+        ctk.CTkButton(frame, text="ADD", command=save).grid(row=6, column=0, columnspan=2, pady=15)
+
+    def open_edit_popup(self, index, service, username, password):
         popup = ctk.CTkToplevel(self)
         popup.title("Edit Credential")
         popup.geometry("400x300")
@@ -387,20 +374,29 @@ class PasswordScene(ctk.CTkFrame):
         frame = ctk.CTkFrame(popup)
         frame.pack(padx=20, pady=20)
 
-        ctk.CTkLabel(frame, text="Service").pack(anchor="w")
+        ctk.CTkLabel(frame, text="Service").grid(row=0, column=0, sticky="w")
         service_entry = ctk.CTkEntry(frame, width=300)
         service_entry.insert(0, service)
-        service_entry.pack(pady=5)
+        service_entry.grid(row=1, column=0, columnspan=2, pady=5)
 
-        ctk.CTkLabel(frame, text="Username").pack(anchor="w")
+        ctk.CTkLabel(frame, text="Username").grid(row=2, column=0, sticky="w")
         username_entry = ctk.CTkEntry(frame, width=300)
         username_entry.insert(0, username)
-        username_entry.pack(pady=5)
+        username_entry.grid(row=3, column=0, columnspan=2, pady=5)
 
-        ctk.CTkLabel(frame, text="Password").pack(anchor="w")
-        password_entry = ctk.CTkEntry(frame, width=300)
+        ctk.CTkLabel(frame, text="Password").grid(row=4, column=0, sticky="w")
+        password_entry = ctk.CTkEntry(frame, width=200)
         password_entry.insert(0, password)
-        password_entry.pack(pady=5)
+        password_entry.grid(row=5, column=0, sticky="w")
+
+        def generate_password():
+            characters = string.ascii_letters + string.digits + string.punctuation
+            generated = ''.join(random.choices(characters, k=16))
+            password_entry.delete(0, "end")
+            password_entry.insert(0, generated)
+
+        gen_btn = ctk.CTkButton(frame, text="↻", width=30, height=28, command=generate_password)
+        gen_btn.grid(row=5, column=1, padx=5)
 
         def save_changes():
             new_service = service_entry.get()
@@ -408,19 +404,20 @@ class PasswordScene(ctk.CTkFrame):
             new_password = password_entry.get()
             if new_service and new_username and new_password:
                 creds = pm.load_credentials()
-                if service in creds:
-                    del creds[service]
-                creds[new_service] = {
+                creds[index] = {
+                    "service": new_service,
                     "username": new_username,
                     "password": pm.encrypt_password(new_password, pm.get_global_master())
                 }
                 pm.save_all_credentials(creds)
                 self.display_credentials()
+
                 popup.destroy()
             else:
                 messagebox.showwarning("Missing Info", "Please fill all fields.")
 
         ctk.CTkButton(frame, text="SAVE", command=save_changes).pack(pady=15)
+        popup.wait_window()
 
 class HoverFrame(ctk.CTkFrame):
     def __init__(self, parent):
@@ -468,7 +465,6 @@ class FileEncryptScene(ctk.CTkFrame):
         nav_bar = ctk.CTkFrame(self, fg_color="transparent")
         nav_bar.pack(fill="x", padx=20, pady=10)
 
-        # Left-aligned nav buttons
         nav_buttons = ctk.CTkFrame(nav_bar, fg_color="transparent")
         nav_buttons.pack(side="left")
 
@@ -482,7 +478,6 @@ class FileEncryptScene(ctk.CTkFrame):
                                 command=lambda s=scene: controller.show_frame(s))
             btn.pack(side="left", padx=5)
 
-        # Right-aligned config and help
         right_side = ctk.CTkFrame(nav_bar, fg_color="transparent")
         right_side.pack(side="right")
 
@@ -493,6 +488,9 @@ class FileEncryptScene(ctk.CTkFrame):
         help_button.pack(side="left")
 
         # === Main Content Form ===
+        title = ctk.CTkLabel(self, text="File Encryptor", font=ctk.CTkFont(size=24, weight="bold"))
+        title.pack(pady=10)
+        
         form_frame = ctk.CTkFrame(self, fg_color="transparent")
         form_frame.pack(pady=60)
 
