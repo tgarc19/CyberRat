@@ -1,25 +1,23 @@
 # CS499 CyberRat
 Application for grouping Cybersecurity tools
 
-Suggested Features:
+## Suggested Features:
 
 WIS packaging and single file packaging for easy install
 
-Help (?):
-
-    provides link to manual
+### Help (?):
+-provides link to manual
     
-config:
+### config:
+-nmap scene:
 
-    nmap scene:
+    configs auto arp
 
-        configs auto arp
+-Password Manager:
 
-    Password Manager:
+    configs password generation
 
-        configs password generation
-
-    File Encryption:
+-File Encryption:
 
         configs keys
 
@@ -29,4 +27,4 @@ config:
 
         multiple keys
       
-batch file encryption
+### batch file encryption
