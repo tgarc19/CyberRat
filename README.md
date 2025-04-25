@@ -18,7 +18,9 @@ Application for grouping Cybersecurity tools
 
 ## Suggested Features:
 
-WIS packaging and single file packaging for easy install
+pyinstall one-dir packaging for windows
+
+scapy root access needed + one-dir packing
 
 batch file encryption
 
