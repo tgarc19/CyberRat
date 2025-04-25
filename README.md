@@ -3,6 +3,8 @@ Application for grouping Cybersecurity tools
 
 ## How to Install:
 ### Step 1:
+Install Npcap on windows
+Run Application with root permissions on linux to use unix (packaging should do this automatically)
     Download & Install dependencies:
     1. Npcap
     2. Python
