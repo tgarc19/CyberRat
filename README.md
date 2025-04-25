@@ -8,7 +8,7 @@ Install Npcap on windows
 Run Application with root permissions on linux to use unix (packaging should do this automatically)
 
     Download & Install dependencies:
-    1. Npcap
+    1. Npcap (if windows)
     2. Python
     3. Scapy
     4. Cryptography
