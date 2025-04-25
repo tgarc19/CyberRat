@@ -14,11 +14,15 @@ Application for grouping Cybersecurity tools
     PS: I recommend creating a vm until we implement packages so you do not lose scope of the dependencies
     
 ### Step 2:
-    Run If you have any questions look in the manual.
+    Run, If you have any questions look in the manual.
 
 ## Suggested Features:
 
 WIS packaging and single file packaging for easy install
+
+batch file encryption
+
+Password sorting
 
 ### Help (?):
 -provides link to manual
@@ -42,4 +46,4 @@ WIS packaging and single file packaging for easy install
 
         multiple keys
       
-### batch file encryption
+
