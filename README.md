@@ -2,7 +2,8 @@
 Application for grouping Cybersecurity tools
 
 ## Installation
-All you have to do is download, extract, and click the .exe to run the application if using a release build
+All you have to do is download, extract, and click the .exe to run the application if using a release build.
+Release builds are available in "Releases" on github.
 
 
 ### How to Run Sourcecode For Windows Machines:
