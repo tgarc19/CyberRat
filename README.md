@@ -1,10 +1,15 @@
 # CyberRat
 Application for grouping Cybersecurity tools
 
+This application runs on Python CTK as its user interface.
+The main purpose of this application is as an easier use of many tools in one window.
+The features implemented so far are, Password management, Scapy network ping, File encryption. Usage of these features will be discussed later.
+
+
+
 ## Installation
 All you have to do is download, extract, and click the .exe to run the application if using a release build.
 Release builds are available in "Releases" on github.
-
 
 ### How to Run Sourcecode For Windows Machines:
 
@@ -22,6 +27,15 @@ Release builds are available in "Releases" on github.
     
 #### Step 2:
     Run GUImain.py.
+
+## Usage
+
+### Password Manager:
+The Password Manager encrypts the password with a hash 
+
+### Network Ping:
+
+### File Encryption:
 
 ## Suggested Features:
 
@@ -57,3 +71,4 @@ Implemnt more Scapy tools
         multiple keys
       
 
+## Credits:
